@@ -37,7 +37,7 @@ async fn main() {
 
     println!("Server running on port 8000");
 
-    axum::serve(listener, app);
+    axum::serve(listener, app).await.unwrap();
 }
 
 async fn root() -> &'static str{

@@ -1,4 +1,11 @@
 services:
+  app: 
+    container_name: simple_axum
+    build: .
+    ports: 
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgres://user:password@db:5432/crud_api 
   db:
     image: postgres:15
     container_name: db

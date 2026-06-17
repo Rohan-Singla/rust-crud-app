@@ -6,12 +6,14 @@ use sqlx::{Pool, pool, postgres::PgPoolOptions, prelude::FromRow , PgPool};
 use tokio::net::TcpListener;
 
 
+// serialize and deserialize macro so serde functions can be used
 #[derive(Serialize,Deserialize)]
 struct UserPayload {
     name : String,
     email : String
 }
 
+// From row is required so rust knows what will be the recieving data basically table structure
 #[derive(Serialize,FromRow)]
 struct User {
     id : i32,
@@ -20,11 +22,19 @@ struct User {
 }
 #[tokio::main]
 async fn main() {
+    // get the database url from the enviournment docker in this case
+
     let db_url = env::var("DATABASE_URL").expect("DB Url does not exist !!");
 
+    // make a connection to DB
     let pool = PgPoolOptions::new().connect(&db_url).await.expect("Failde to connect to DB");
 
+    // runs all migrations under migrations folder on start
+
     sqlx::migrate!().run(&pool).await.expect("Migrations Failed");
+
+
+    // axum's api design is calling different http methods with different handlers so no need to repeat handlers
 
     let app = Router::new()
     .route("/", get(root))
@@ -43,6 +53,10 @@ async fn main() {
 async fn root() -> &'static str{
     "Welcome to the user management API"
 }
+
+// /State(pool)     ← destructure: extract the inner value and name it `pool`
+ // State<PgPool>   ← the type: axum's State wrapper containing a PgPool
+ // Returns a Vec of user and serializes into Json
 
 async fn list_users (State(pool) : State<PgPool>) -> Result<Json<Vec<User>>,StatusCode>{
 
